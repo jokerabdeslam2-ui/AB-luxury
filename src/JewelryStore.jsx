@@ -331,15 +331,25 @@ export default function JewelryStore() {
               onClick={() => goToCategory("ring")}
               className={`nav-link ${activeCategory === "ring" ? "active" : ""}`}
             >
-              الخواتم
-            </button>
-            <button
-              onClick={() => goToCategory("bracelet")}
-              className={`nav-link ${activeCategory === "bracelet" ? "active" : ""}`}
-            >
-              الأساور
-            </button>
-          </nav>
+             {/* أزرار تصفية سريعة */}
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+            {[
+              { key: "all", label: "الكل" },
+              { key: "ring", label: "خواتم" },
+              { key: "bracelet", label: "أساور" },
+              { key: "necklace", label: "سلاسل" },
+              { key: "parure", label: "أطقم (بارور)" },
+            ].map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setActiveCategory(f.key)}
+                className={activeCategory === f.key ? "btn-primary" : "btn-outline"}
+                style={{ padding: ".5rem 1.25rem", fontSize: ".875rem" }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
 
           {/* سلة المشتريات + قائمة الهاتف */}
           <div className="flex items-center gap-2">
