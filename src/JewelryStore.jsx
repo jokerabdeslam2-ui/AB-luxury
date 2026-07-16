@@ -177,15 +177,16 @@ export default function JewelryStore() {
       if (!error) setProducts(data || []);
       setProductsLoading(false);
     };
+    
     fetchProducts();
 
-    const channel = supabase
-      .channel("products-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, fetchProducts)
-      .subscribe();
-    return () => supabase.removeChannel(channel);
-  }, []);
-
+    // رانا عطلنا خاصية التحديث المباشر (Realtime) مؤقتا باش نشوفو إذا هي سباب المشكل
+    // const channel = supabase
+    //   .channel("products-changes")
+    //   .on("postgres_changes", { event: "*", schema: "public", table: "products" }, fetchProducts)
+    //   .subscribe();
+    // return () => supabase.removeChannel(channel);
+ }, []);
 
   // ---------- حالة السلة ----------
   const [cart, setCart] = useState([]); // [{id, qty}]
