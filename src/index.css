@@ -1,0 +1,248 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   أنماط مخصّصة لهوية متجر "بريق"
+   ------------------------------------------------------------
+   ألوان العلامة والخطوط مُعرّفة في tailwind.config.js (يمكن استخدامها
+   كأصناف Tailwind عادية: bg-ivory, text-gold-dark, font-display...).
+   الأنماط هنا فقط للمكوّنات المركّبة (أزرار، بطاقات، حقول) التي
+   تحتاج تفاصيل تصميم أدق مما توفره أصناف Tailwind الأساسية.
+   ============================================================ */
+
+body {
+  font-family: "Tajawal", sans-serif;
+}
+
+/* الشعار: حرف "ب" داخل إطار دائري ذهبي يحاكي شكل الخاتم */
+.logo-mark {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 2px solid #b78b4c;
+  background: radial-gradient(circle at 32% 30%, #fdf6ec, #f3dce1);
+}
+.logo-mark::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  right: 14%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #b78b4c;
+}
+.logo-letter {
+  color: #9c6b3e;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+/* فاصل زخرفي بين الأقسام: خط ذهبي رفيع + معين صغير */
+.divider-line {
+  flex: 1 1 auto;
+  height: 1px;
+  max-width: 180px;
+  background: linear-gradient(90deg, transparent, #c9a66b, transparent);
+}
+.divider-dot {
+  width: 7px;
+  height: 7px;
+  margin: 0 14px;
+  flex-shrink: 0;
+  background: #b78b4c;
+  transform: rotate(45deg);
+}
+
+/* الأزرار */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #b78b4c;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 0.85rem 2rem;
+  border-radius: 9999px;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+.btn-primary:hover {
+  background: #9c6b3e;
+}
+.btn-primary:active {
+  transform: scale(0.97);
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-primary:focus-visible {
+  outline: 2px solid #6b4a28;
+  outline-offset: 2px;
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1.5px solid #b78b4c;
+  color: #9c6b3e;
+  font-weight: 700;
+  padding: 0.65rem 1.5rem;
+  border-radius: 9999px;
+  background: transparent;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.btn-outline:hover {
+  background: #b78b4c;
+  color: #fff;
+}
+.btn-outline:focus-visible {
+  outline: 2px solid #6b4a28;
+  outline-offset: 2px;
+}
+
+/* روابط التصفح في الهيدر */
+.nav-link {
+  position: relative;
+  font-weight: 500;
+  color: #2b2420;
+  padding-bottom: 4px;
+  transition: color 0.2s ease;
+}
+.nav-link:hover {
+  color: #9c6b3e;
+}
+.nav-link.active {
+  color: #9c6b3e;
+}
+.nav-link.active::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  left: 0;
+  bottom: -3px;
+  height: 2px;
+  background: #b78b4c;
+}
+
+/* بطاقة المنتج */
+.card-product {
+  background: #ffffff;
+  border: 1px solid #efe6d8;
+  border-radius: 1.1rem;
+  overflow: hidden;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+.card-product:hover {
+  box-shadow: 0 16px 34px -18px rgba(155, 110, 60, 0.45);
+  transform: translateY(-4px);
+}
+
+/* حقول نموذج الطلب */
+.input-field {
+  width: 100%;
+  border: 1px solid #e6dcc8;
+  border-radius: 0.85rem;
+  padding: 0.7rem 1rem;
+  background: #fffdf9;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.input-field:focus {
+  outline: none;
+  border-color: #b78b4c;
+  box-shadow: 0 0 0 3px rgba(183, 139, 76, 0.15);
+}
+.input-error {
+  border-color: #c0524b !important;
+}
+
+/* بطاقات اختيار طريقة الدفع */
+.radio-card {
+  border: 1.5px solid #e6dcc8;
+  border-radius: 1rem;
+  padding: 1rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.radio-card.selected {
+  border-color: #b78b4c;
+  background: #fbf3e7;
+}
+.radio-card.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.badge-recommended {
+  background: #b78b4c;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.6rem;
+  border-radius: 9999px;
+}
+
+/* شارات حالة توفر المنتج (نفدت الكمية / قريبًا) */
+.status-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.3rem 0.7rem;
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(43, 36, 32, 0.12);
+}
+.status-badge-out {
+  background: #f1ede6;
+  color: #6b5f52;
+}
+.status-badge-soon {
+  background: #b78b4c;
+  color: #ffffff;
+}
+
+/* أيقونات التواصل الاجتماعي في الفوتر */
+.social-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f3dce1;
+  transition: background 0.2s ease;
+}
+.social-icon:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* حركة تعويم بسيطة لرسومات الهيرو، مع احترام إعداد تقليل الحركة */
+@keyframes floatY {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.animate-float {
+  animation: floatY 6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-float {
+    animation: none;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid #9c6b3e;
+  outline-offset: 2px;
+}
