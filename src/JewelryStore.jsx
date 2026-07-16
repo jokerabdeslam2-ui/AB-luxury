@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "./supabase.js";
 import {
   ShoppingBag,
@@ -23,12 +23,11 @@ import {
    متجر "بريق" — إكسسوارات نسائية (خواتم وأساور)
    ------------------------------------------------------------
    ملاحظات للمطوّر:
-   - كل بيانات المنتجات موجودة في مصفوفة PRODUCTS بالأسفل، عدّلها
-     بسهولة (الاسم، السعر، الفئة، الألوان) دون المساس بباقي الكود.
-   - بدل صور فوتوغرافية حقيقية، تم استخدام رسومات SVG بخط ذهبي
-     بسيطة (RingIcon / BraceletIcon) لضمان طابع "راقٍ وبسيط" وعدم
-     الاعتماد على روابط صور خارجية قد تنقطع. لاستبدالها بصور حقيقية
-     لاحقًا: استبدل مكوّن <ProductVisual /> بوسم <img src="..."/>.
+   - المنتجات (الاسم، السعر، الصورة، الفئة، حالة التوفر) ما عادتش
+     مكتوبة في الكود — تُدار بالكامل من لوحة التحكم /admin (تبويب
+     "المنتجات"). هذا الملف فقط يقرأها من قاعدة البيانات ويعرضها.
+   - لكل منتج بلا صورة مرفوعة بعد، يظهر رسم SVG بخط ذهبي بسيط
+     (RingIcon / BraceletIcon) كبديل أنيق مؤقت.
    - قاعدة البيانات ولوحة التحكم تعملان عبر Supabase (بدون أي بطاقة بنكية).
      إعداداتها في src/supabase.js وملف .env — راجعي README.md للخطوات.
    - قائمة الولايات (WILAYAS) تحتوي على الولايات الـ58 المعروفة؛
@@ -37,53 +36,15 @@ import {
      المكوّنات المركّبة (الأزرار، البطاقات...) في src/index.css.
    ============================================================ */
 
-// ---------- بيانات المنتجات ----------
-// حقل status يتحكم في حالة توفر المنتج، وله 3 قيم فقط:
-//   "available"    → متوفر عادي (الوضع الافتراضي)
+// ---------- نصوص شارات حالة التوفر ----------
+// حقل status لكل منتج له 3 قيم فقط:
+//   "available"    → متوفر عادي
 //   "out_of_stock" → "نفدت الكمية" — يظهر شارة رمادية وزر "أضف إلى السلة" يتعطّل
 //   "coming_soon"  → "قريبًا"      — يظهر شارة ذهبية وزر "أضف إلى السلة" يتعطّل
-const PRODUCTS = [
-  {
-    id: 1,
-    name: "خاتم لمسة",
-    category: "ring",
-    price: 2800,
-    desc: "خاتم رفيع مطلي بالذهب، تصميم بسيط يلائم الإطلالة اليومية",
-    color: "#B78B4C",
-    accent: "#F3DCE1",
-    status: "available",
-  },
-  {
-    id: 2,
-    name: "خاتم توهّج",
-    category: "ring",
-    price: 3500,
-    desc: "خاتم مرصّع بحجر لامع يمنح إطلالتك لمسة من التألق",
-    color: "#9C6B3E",
-    accent: "#F8E9EC",
-    status: "available",
-  },
-  {
-    id: 3,
-    name: "سوار بريق",
-    category: "bracelet",
-    price: 3200,
-    desc: "سوار ذهبي رفيع يُلبس منفردًا أو ضمن مجموعة أساور",
-    color: "#B78B4C",
-    accent: "#EADFC8",
-    status: "available",
-  },
-  {
-    id: 4,
-    name: "سوار روعة",
-    category: "bracelet",
-    price: 4200,
-    desc: "سوار مزدوج بتصميم متداخل بلمسة أنيقة وراقية",
-    color: "#9C6B3E",
-    accent: "#F3DCE1",
-    status: "available",
-  },
-];
+const STATUS_LABELS = {
+  out_of_stock: "نفدت الكمية",
+  coming_soon: "قريبًا",
+};
 
 // ---------- قائمة ولايات الجزائر ----------
 const WILAYAS = [
@@ -130,20 +91,35 @@ function BraceletIcon({ color = "#B78B4C", accent = "#F3DCE1" }) {
   );
 }
 
-// ---------- نصوص شارات حالة التوفر ----------
-const STATUS_LABELS = {
-  out_of_stock: "نفدت الكمية",
-  coming_soon: "قريبًا",
-};
-
-// ---------- غلاف بصري للمنتج (يستبدل صورة حقيقية لاحقًا عند توفرها) ----------
+// ---------- غلاف بصري للمنتج: صورة حقيقية إن وُجدت، وإلا رسم SVG بديل ----------
 function ProductVisual({ product }) {
   const Icon = product.category === "ring" ? RingIcon : BraceletIcon;
   const isUnavailable = product.status && product.status !== "available";
+
+  if (product.image_url) {
+    return (
+      <div className="relative w-full aspect-square overflow-hidden bg-blush-light">
+        {product.status === "out_of_stock" && (
+          <span className="status-badge status-badge-out">{STATUS_LABELS.out_of_stock}</span>
+        )}
+        {product.status === "coming_soon" && (
+          <span className="status-badge status-badge-soon">{STATUS_LABELS.coming_soon}</span>
+        )}
+        <img
+          src={product.image_url}
+          alt={product.name}
+          className="w-full h-full object-cover"
+          style={isUnavailable ? { opacity: 0.5, filter: "grayscale(0.3)" } : undefined}
+          loading="lazy"
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       className="relative w-full aspect-square flex items-center justify-center p-8"
-      style={{ background: `linear-gradient(155deg, ${product.accent} 0%, #FFFFFF 75%)` }}
+      style={{ background: `linear-gradient(155deg, ${product.accent || "#F3DCE1"} 0%, #FFFFFF 75%)` }}
     >
       {product.status === "out_of_stock" && (
         <span className="status-badge status-badge-out">{STATUS_LABELS.out_of_stock}</span>
@@ -152,7 +128,7 @@ function ProductVisual({ product }) {
         <span className="status-badge status-badge-soon">{STATUS_LABELS.coming_soon}</span>
       )}
       <div className="w-28 h-28" style={isUnavailable ? { opacity: 0.45 } : undefined}>
-        <Icon color={product.color} accent="#FFFFFF" />
+        <Icon color={product.color || "#B78B4C"} accent="#FFFFFF" />
       </div>
     </div>
   );
@@ -179,6 +155,38 @@ function Divider() {
 }
 
 export default function JewelryStore() {
+  // ---------- بيانات المنتجات (تأتي من لوحة التحكم /admin عبر Supabase) ----------
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      console.log("1. جاري الاتصال بقاعدة البيانات...");
+      
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: true });
+      
+      if (error) {
+        console.error("2. خطأ من Supabase ❌:", error);
+      } else {
+        console.log("2. السلع اللي جابها Supabase ✅:", data);
+      }
+
+      if (!error) setProducts(data || []);
+      setProductsLoading(false);
+    };
+    fetchProducts();
+
+    const channel = supabase
+      .channel("products-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, fetchProducts)
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, []);
+
+
   // ---------- حالة السلة ----------
   const [cart, setCart] = useState([]); // [{id, qty}]
   const [cartOpen, setCartOpen] = useState(false);
@@ -202,7 +210,7 @@ export default function JewelryStore() {
 
   // ---------- عمليات السلة ----------
   const addToCart = (id) => {
-    const product = PRODUCTS.find((p) => p.id === id);
+    const product = products.find((p) => p.id === id);
     if (product?.status && product.status !== "available") return; // حماية إضافية: لا تُضاف منتجات نفدت أو "قريبًا"
     setCart((prev) => {
       const existing = prev.find((item) => item.id === id);
@@ -227,7 +235,7 @@ export default function JewelryStore() {
   const removeFromCart = (id) => setCart((prev) => prev.filter((item) => item.id !== id));
 
   const cartItems = cart
-    .map((item) => ({ ...item, product: PRODUCTS.find((p) => p.id === item.id) }))
+    .map((item) => ({ ...item, product: products.find((p) => p.id === item.id) }))
     .filter((item) => item.product);
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.qty, 0);
@@ -245,7 +253,7 @@ export default function JewelryStore() {
   };
 
   const visibleProducts =
-    activeCategory === "all" ? PRODUCTS : PRODUCTS.filter((p) => p.category === activeCategory);
+    activeCategory === "all" ? products : products.filter((p) => p.category === activeCategory);
 
   // ---------- إرسال نموذج الطلب ----------
   const handleFormChange = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
@@ -452,40 +460,50 @@ export default function JewelryStore() {
           ))}
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {visibleProducts.map((product) => (
-            <div key={product.id} className="card-product flex flex-col">
-              <ProductVisual product={product} />
-              <div className="p-4 flex flex-col flex-1">
-                <h3 className="font-semibold text-charcoal mb-1">{product.name}</h3>
-                <p className="text-xs text-charcoal-soft mb-3 leading-relaxed flex-1">{product.desc}</p>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-bold text-gold-dark">{product.price.toLocaleString("ar-DZ")} د.ج</span>
+        {productsLoading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 size={28} className="animate-spin text-gold" />
+          </div>
+        ) : visibleProducts.length === 0 ? (
+          <p className="text-center text-charcoal-soft py-16">
+            لا توجد منتجات بعد — أضيفيها من لوحة التحكم /admin.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {visibleProducts.map((product) => (
+              <div key={product.id} className="card-product flex flex-col">
+                <ProductVisual product={product} />
+                <div className="p-4 flex flex-col flex-1">
+                  <h3 className="font-semibold text-charcoal mb-1">{product.name}</h3>
+                  <p className="text-xs text-charcoal-soft mb-3 leading-relaxed flex-1">{product.description}</p>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-bold text-gold-dark">{product.price.toLocaleString("ar-DZ")} د.ج</span>
+                  </div>
+                  <button
+                    onClick={() => addToCart(product.id)}
+                    disabled={product.status && product.status !== "available"}
+                    className="btn-primary justify-center w-full"
+                    style={{ padding: ".6rem 1rem", fontSize: ".875rem" }}
+                  >
+                    {product.status === "out_of_stock" ? (
+                      "نفدت الكمية"
+                    ) : product.status === "coming_soon" ? (
+                      "قريبًا"
+                    ) : justAddedId === product.id ? (
+                      <>
+                        <Check size={16} /> أُضيف
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag size={16} /> أضف إلى السلة
+                      </>
+                    )}
+                  </button>
                 </div>
-                <button
-                  onClick={() => addToCart(product.id)}
-                  disabled={product.status && product.status !== "available"}
-                  className="btn-primary justify-center w-full"
-                  style={{ padding: ".6rem 1rem", fontSize: ".875rem" }}
-                >
-                  {product.status === "out_of_stock" ? (
-                    "نفدت الكمية"
-                  ) : product.status === "coming_soon" ? (
-                    "قريبًا"
-                  ) : justAddedId === product.id ? (
-                    <>
-                      <Check size={16} /> أُضيف
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag size={16} /> أضف إلى السلة
-                    </>
-                  )}
-                </button>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <Divider />
